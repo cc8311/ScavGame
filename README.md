@@ -1,0 +1,2 @@
+# ScavGame
+new game
