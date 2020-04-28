@@ -1,4 +1,5 @@
 ﻿
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
@@ -8,8 +9,16 @@ using UnityEngine.UI;
 
 public class MainScavScript : MonoBehaviour
 {
-    public Text InfoPanel;
-
+    public Text PlayerInfoPanel;
+    public Text EnemyInfoPanel;
+    public Text playeratts;
+    public Text enemyatts;
+    public Text dist;
+    public Text acchead;
+    public Text accbody;
+    
+    public Text bodyatt;
+    public Text headatt;
     public Player player;
     public Enemy enemy;
     public Weapon weapon;
@@ -17,23 +26,24 @@ public class MainScavScript : MonoBehaviour
     public int riskLevel = 50;
     public int npcLevel = 50;
     public int rem1;
-    public int rem2;
-    int Cdamm;
-    int Cdam;
+    public float rem2;
+    float Cdamm;
+    float Cdam;
 
     // Start is called before the first frame update
     void Start()
     {
         
         //name,health,armor,damage,speed,distance,closechance,ranged,accuracy,critchance
-        enemy = new Enemy("drifter", 50, 50, 5, 5, 20, 0, false, 0, 20);
+        enemy = new Enemy("drifter", 1000, 1000, 5, 5, 20, 0, false, 0, 20);
         //name,type,ranged,damagehead,damagebody,-crit,critchance,critmin,critmax,acuracyhead,acuraccybody,health,armor,speed
-        weapon = new Weapon("Knife", "melee", false, 50, 10, 20, 20, 50, 0, 100, 100, 5, 5, 5);
-        //enemy,name,weapon,morale,health,armor,melee,strength,marksman,dext,speed,agility,defense,intell,stealth,luck,loot
-        player = new Player(enemy, "player", weapon, 10, 10, 100, 100, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10);
+        weapon = new Weapon("Knife", "melee", false, 50, 10, 20, 5, 50, 0, 5, 75, 5, 5, 5);
+        //enemy,name,weapon,morale,health,armor,melee,strength,marksman,dext,speed,agility,defense,inttell,stealth,luck,loot
+        player = new Player(enemy, "player", weapon, 10, 100, 100, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, false);
 
-        InfoPanel.text = "Welcome";
-
+        PlayerInfoPanel.text = "Start";
+        //headatt.text = (player.Weapon.AccuracyHead + player.Marksman)  + "%";
+        //bodyatt.text = (player.Weapon.AccuracyBody + player.Marksman) + "%";
         //ScavStart();
 
         //FightMain();
@@ -44,8 +54,140 @@ public class MainScavScript : MonoBehaviour
     {
 
     }
+    public void WeaponAccuracyCheck()
+    {
+        if (player.Weapon.Ranged == true)
+        {
+            headatt.text = (player.Weapon.AccuracyHead + player.Marksman) + "%";
+            bodyatt.text = (player.Weapon.AccuracyBody + player.Marksman) + "%";
+        }
+        if (player.Weapon.Ranged == false)
+        {
+            headatt.text = (player.Weapon.AccuracyHead + player.Melee) + "%";
+            bodyatt.text = (player.Weapon.AccuracyBody + player.Melee) + "%";
+        }
+    }
+    public void GiveDamage(float dam)
+    {
+        {
+            if (player.Weapon.Ranged == true)
+            {
+                dam = dam + player.Dexterity;
+                if (CriticalChance())
+                {
+                    dam = dam * 3;
+                    UnityEngine.Debug.Log("player crit!");
+                }
+                float rem2 = dam - player.Enemy.Armor;
+                if (player.Enemy.Armor > 0)
+                {
+                    if (dam == player.Enemy.Armor)
+                    {
+                        player.Enemy.Armor = 0;
+                        return;
+                    }
+                    if (dam < player.Enemy.Armor)
+                    {
+                        player.Enemy.Armor -= dam;
+                    }
+                    if (dam > player.Enemy.Armor)
+                    {
+                        rem2 = (dam - player.Enemy.Armor);
+                        player.Enemy.Armor = 0;
+                        if (rem2 > player.Enemy.Health)
+                        {
+                            EnemyDeath();
+                        }
+                        if (rem2 < player.Enemy.Health)
+                        {
+                            player.Enemy.Health -= rem2;
+                        }
 
-    public void TakeDamage(int damm)
+                    }
+                    //player.Enemy.Armor = 0;
+                    if (player.Enemy.Health <= 0)
+                    {
+                        EnemyDeath();
+                    }
+                }
+                else
+                {
+                    if (dam >= player.Enemy.Health)
+                    {
+                        EnemyDeath();
+                    }
+                    if (dam < player.Enemy.Health)
+                    {
+                        player.Enemy.Health -= rem2;
+                    }
+                }
+                //EnemyMovement();
+
+            }
+            else if (player.Weapon.Ranged == false)
+            {
+
+                dam = dam + player.Strength;
+                if (CriticalChance())
+                {
+                    dam = dam * 3;
+                    UnityEngine.Debug.Log("player crit!");
+                }
+                float rem2 = dam - player.Enemy.Armor;
+                if (player.Enemy.Armor > 0)
+                {
+                    if (dam == player.Enemy.Armor)
+                    {
+                        player.Enemy.Armor = 0;
+                        return;
+                    }
+                    if (dam < player.Enemy.Armor)
+                    {
+                        player.Enemy.Armor -= dam;
+                    }
+                    if (dam > player.Enemy.Armor)
+                    {
+                        rem2 = (dam - player.Enemy.Armor);
+                        player.Enemy.Armor = 0;
+                        if (rem2 > player.Enemy.Health)
+                        {
+                            EnemyDeath();
+                        }
+                        if (rem2 < player.Enemy.Health)
+                        {
+                            player.Enemy.Health -= rem2;
+                        }
+
+                    }
+                    //player.Enemy.Armor = 0;
+                    if (player.Enemy.Health <= 0)
+                    {
+                        EnemyDeath();
+                    }
+                }
+                else
+                {
+                    if (dam >= player.Enemy.Health)
+                    {
+                        EnemyDeath();
+                    }
+                    if (dam < player.Enemy.Health)
+                    {
+                        player.Enemy.Health -= rem2;
+                    }
+                }
+                Cdam = dam;
+
+            }
+
+        }
+
+        //PlayerInfoPanel.text = "Player attacked for " + dam;
+        UnityEngine.Debug.Log("enemy distance" + player.Enemy.Distance);
+        UnityEngine.Debug.Log("enemy armor" + player.Enemy.Armor);
+        UnityEngine.Debug.Log("enemy health" + player.Enemy.Health);
+    }
+    public void TakeDamage(float damm)
     {
         int r = Random.Range(0, 100);
         if (r <= player.Enemy.Accuracy)
@@ -61,7 +203,7 @@ public class MainScavScript : MonoBehaviour
                     damm = damm * 3;
                     UnityEngine.Debug.Log("enemy crit!");
                 }
-                int rem1 = damm - player.Armor;
+                float rem1 = damm - player.Armor;
                 if (player.Armor > 0)
                 {
                     if (damm == player.Armor)
@@ -116,7 +258,7 @@ public class MainScavScript : MonoBehaviour
                         damm = damm * 3;
                         UnityEngine.Debug.Log("enemy crit!");
                     }
-                    int rem1 = damm - player.Armor;
+                    float rem1 = damm - player.Armor;
                     if (player.Armor > 0)
                     {
                         if (damm == player.Armor)
@@ -170,9 +312,9 @@ public class MainScavScript : MonoBehaviour
             }
            
         }
-        
-        
-        //InfoPanel.text = "Player attacked for " + damm;
+
+
+        //EnemyInfoPanel.text = "Enemy attacked for " + damm;
         UnityEngine.Debug.Log("player armor" + player.Armor);
         UnityEngine.Debug.Log("player health" + player.Health);
     }
@@ -199,166 +341,143 @@ public class MainScavScript : MonoBehaviour
             return false;
         }
     }
-    
-    public void TurnResults(int damm, int dam)
+    public void PlayerTurnResults(float dam)
     {
-        InfoPanel.text = "Player attacked for " + dam + "\n Enemy attacked for " + damm + "\n Distance " + player.Enemy.Distance;
-    }
-    public void PreGiveDamageHead()
-    {
-        int r = Random.Range(0, 100);
-        if (r > player.Weapon.AccuracyHead)
+        if (player.Missed == true)
         {
-            UnityEngine.Debug.Log("miss");
-
+            if (player.Weapon.Ranged == false && !EnemyClose())
+            {
+                PlayerInfoPanel.text = "ooot of range";
+            }
+            else
+            {
+                PlayerInfoPanel.text = "Player attacked for " + dam;
+            }
+            playeratts.text = "Health " + player.Health + "\n Armor " + player.Health;
+            dist.text = "Distance " + player.Enemy.Distance;
+            WeaponAccuracyCheck();
         }
         else
         {
-            GiveDamage(player.Weapon.DamageHead);
+            PlayerInfoPanel.text = "Player Missed!";
+            playeratts.text = "Health " + player.Health + "\n Armor " + player.Health;
+            dist.text = "Distance " + player.Enemy.Distance;
+            
+            WeaponAccuracyCheck();
+
+        }
+        
+        
+        
+
+    }
+    public void EnemyTurnResults(float damm)
+    {
+        EnemyInfoPanel.text = "Enemy attacked for " + damm;
+        enemyatts.text = "Enemy Health " + player.Enemy.Health + "\n Enemy Armor " + player.Enemy.Health;
+        dist.text = "Distance " + player.Enemy.Distance;
+    }
+    public void PreGiveDamageHead()
+    {
+        if (player.Weapon.Ranged == true)
+        {
+            float r = Random.Range(0, 100);
+            if (r > player.Weapon.AccuracyHead + player.Marksman)
+            {
+                player.Missed = true;
+              
+            }
+            else
+            {
+                player.Missed = false;
+            }
+        }
+       
+        else if (player.Weapon.Ranged == false)
+        {
+            if (EnemyClose())
+            {
+                float r = Random.Range(0, 100);
+                if (r > player.Weapon.AccuracyHead + player.Melee)
+                {
+                    player.Missed = true;
+                }
+                else
+                {
+                    player.Missed = false;
+                }
+            }
+            else
+            {
+                player.Missed = true;
+                PlayerInfoPanel.text = PlayerInfoPanel.text + "\nOut of range!";
+            }
+        }
+        
+    }
+    public bool Ranged()
+    {
+        if (player.Weapon.Ranged == true)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
     public void PreGiveDamageBody()
     {
-        int r = Random.Range(0, 100);
-        if (r > player.Weapon.AccuracyBody)
+        if (player.Weapon.Ranged == true)
         {
-            UnityEngine.Debug.Log("miss");
-        }
-        else
-        {
-            GiveDamage(player.Weapon.DamageBody);
-        }
-        
-    }
-    public void GiveDamage(int dam)
-    {
-        
-        
-        {
-            if (player.Weapon.Ranged == true)
+            float r = Random.Range(0, 100);
+            if (r > player.Weapon.AccuracyBody + player.Marksman)
             {
-                dam = dam + player.Marksman;
-                if (CriticalChance())
-                {
-                    dam = dam * 3;
-                    UnityEngine.Debug.Log("player crit!");
-                }
-                int rem2 = dam - player.Enemy.Armor;
-                if (player.Enemy.Armor > 0)
-                {
-                    if (dam == player.Enemy.Armor)
-                    {
-                        player.Enemy.Armor = 0;
-                        return;
-                    }
-                    if (dam < player.Enemy.Armor)
-                    {
-                        player.Enemy.Armor -= dam;
-                    }
-                    if (dam > player.Enemy.Armor)
-                    {
-                        rem2 = (dam - player.Enemy.Armor);
-                        player.Enemy.Armor = 0;
-                        if (rem2 > player.Enemy.Health)
-                        {
-                            EnemyDeath();
-                        }
-                        if (rem2 < player.Enemy.Health)
-                        {
-                            player.Enemy.Health -= rem2;
-                        }
-
-                    }
-                    //player.Enemy.Armor = 0;
-                    if (player.Enemy.Health <= 0)
-                    {
-                        EnemyDeath();
-                    }
-                }
-                else 
-                {
-                    if (dam >= player.Enemy.Health)
-                    {
-                        EnemyDeath();
-                    }
-                    if (dam < player.Enemy.Health)
-                    {
-                        player.Enemy.Health -= rem2;
-                    }
-                }
-                //EnemyMovement();
+                player.Missed = true;
 
             }
-            else if (player.Weapon.Ranged == false)
+            else
             {
-
-                dam = dam + player.Strength;
-                if (player.Enemy.Distance <= 0)
+                player.Missed = false;
+            }
+        }
+        
+        else if (player.Weapon.Ranged == false)
+        {
+            if (EnemyClose())
+            {
+                float r = Random.Range(0, 100);
+                if (r > player.Weapon.AccuracyBody + player.Melee)
                 {
-                    if (CriticalChance())
-                    {
-                        dam = dam * 3;
-                        UnityEngine.Debug.Log("player crit!");
-                    }
-                    int rem2 = dam - player.Enemy.Armor;
-                    if (player.Enemy.Armor > 0)
-                    {
-                        if (dam == player.Enemy.Armor)
-                        {
-                            player.Enemy.Armor = 0;
-                            return;
-                        }
-                        if (dam < player.Enemy.Armor)
-                        {
-                            player.Enemy.Armor -= dam;
-                        }
-                        if (dam > player.Enemy.Armor)
-                        {
-                            rem2 = (dam - player.Enemy.Armor);
-                            player.Enemy.Armor = 0;
-                            if (rem2 > player.Enemy.Health)
-                            {
-                                EnemyDeath();
-                            }
-                            if (rem2 < player.Enemy.Health)
-                            {
-                                player.Enemy.Health -= rem2;
-                            }
-
-                        }
-                        //player.Enemy.Armor = 0;
-                        if (player.Enemy.Health <= 0)
-                        {
-                            EnemyDeath();
-                        }
-                    }
-                    else
-                    {
-                        if (dam >= player.Enemy.Health)
-                        {
-                            EnemyDeath();
-                        }
-                        if (dam < player.Enemy.Health)
-                        {
-                            player.Enemy.Health -= rem2;
-                        }
-                    }
-                    Cdam = dam;
+                    player.Missed = true;
                 }
-               
                 else
                 {
-                    Cdam = 0;
+                    player.Missed = false;
                 }
+            }
+            else
+            {
+                player.Missed = true;
+                PlayerInfoPanel.text = PlayerInfoPanel.text + "\nOut of range!";
             }
             
         }
-        
-        InfoPanel.text = "Enemy attacked for " + dam;
-        UnityEngine.Debug.Log("enemy distance" + player.Enemy.Distance);
-        UnityEngine.Debug.Log("enemy armor" + player.Enemy.Armor);
-        UnityEngine.Debug.Log("enemy health" + player.Enemy.Health);
+       
     }
+    public bool EnemyClose()
+    {
+        if (player.Enemy.Distance <= 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+   
+    
     public void EnemyMovement()
     {
         if (player.Enemy.Distance <= 0)
@@ -377,8 +496,8 @@ public class MainScavScript : MonoBehaviour
     }
     public void EvadeAttack()
     {
-        int stealth = player.Stealth + player.Intelligence + player.Luck;
-        int attack = Random.Range(0, 100);
+        float stealth = player.Stealth + player.Intelligence + player.Luck;
+        float attack = Random.Range(0, 100);
         if (attack <= stealth)
         {
             UnityEngine.Debug.Log("evaded enemy!");
@@ -435,24 +554,50 @@ public class MainScavScript : MonoBehaviour
     {
         UnityEngine.Debug.Log("Scav Loot");
     }
-
-    
-    
     public void temp(int id)
     {
         if (id == 0)
         {
             PreGiveDamageHead();
-            TakeDamage(player.Enemy.Damage);
-            EnemyMovement();
-            TurnResults(Cdamm, Cdam);
+            if (player.Missed == false)
+            {
+                GiveDamage(player.Weapon.DamageHead);
+
+                TakeDamage(player.Enemy.Damage);
+                EnemyMovement();
+                PlayerTurnResults(Cdam);
+                EnemyTurnResults(Cdamm);
+            }
+            else
+            {
+                TakeDamage(player.Enemy.Damage);
+                EnemyMovement();
+                PlayerTurnResults(Cdam);
+                EnemyTurnResults(Cdamm);
+            }
+            
+
         }
         if (id == 1)
         {
             PreGiveDamageBody();
-            TakeDamage(player.Enemy.Damage);
-            EnemyMovement();
-            TurnResults(Cdamm, Cdam);
+            if (player.Missed == false)
+            {
+                GiveDamage(player.Weapon.DamageBody);
+                TakeDamage(player.Enemy.Damage);
+                EnemyMovement();
+                PlayerTurnResults(Cdam);
+                EnemyTurnResults(Cdamm);
+            }
+            else
+            {
+                TakeDamage(player.Enemy.Damage);
+                EnemyMovement();
+                PlayerTurnResults(Cdam);
+                EnemyTurnResults(Cdamm);
+            }
+            
+
         }
         //FightMain();
     }
@@ -462,12 +607,13 @@ public class MainScavScript : MonoBehaviour
     }
     public void Death()
     {
-        StopAllCoroutines();
+        
         UnityEngine.Debug.Log("enemy wins");
     }
     public void EnemyDeath()
     {
-        StopAllCoroutines();
+        player.Enemy.Health = 0;
+        player.Enemy.Armor = 0;
         UnityEngine.Debug.Log("player wins");
     }
 
@@ -476,26 +622,27 @@ public class MainScavScript : MonoBehaviour
         public Enemy Enemy;
         public string Name;
         public Weapon Weapon;
-        public int Morale;
-        public int Health;
-        public int Armor;
+        public float Morale;
+        public float Health;
+        public float Armor;
 
-        public int Melee;
-        public int Strength;
+        public float Melee;
+        public float Strength;
 
-        public int Marksman;
-        public int Dexterity;
+        public float Marksman;
+        public float Dexterity;
 
-        public int Speed;
-        public int Agility;
-        public int Defense;
+        public float Speed;
+        public float Agility;
+        public float Defense;
 
-        public int Intelligence;
-        public int Stealth;
-        public int Luck;
-        public int Loot;
+        public float Intelligence;
+        public float Stealth;
+        public float Luck;
+        public float Loot;
+        public bool Missed;
 
-        public Player(Enemy enemy, string na, Weapon w, int mo, int he, int ar, int me, int st, int ma, int de, int sp, int ag, int df, int it, int sl, int lu, int lo)
+        public Player(Enemy enemy, string na, Weapon w, float mo, float he, float ar, float me, float st, float ma, float de, float sp, float ag, float df, float it, float sl, float lu, float lo, bool mi)
         {
             Enemy = enemy;
             Name = na;
@@ -518,23 +665,24 @@ public class MainScavScript : MonoBehaviour
             Stealth = sl;
             Luck = lu;
             Loot = lo;
+            Missed = mi;
         }
 
     }
     public class Enemy
     {
         public string Name;
-        public int Health;
-        public int Armor;
-        public int Damage;
-        public int Speed;
-        public int Distance;
-        public int CloseChance;
+        public float Health;
+        public float Armor;
+        public float Damage;
+        public float Speed;
+        public float Distance;
+        public float CloseChance;
         public bool Ranged;
-        public int Accuracy;
-        public int CriticalChance;
+        public float Accuracy;
+        public float CriticalChance;
 
-        public Enemy(string na, int he, int ar, int da, int sp, int di, int cc, bool ra, int ac, int cch)
+        public Enemy(string na, float he, float ar, float da, float sp, float di, float cc, bool ra, float ac, float cch)
         {
             Name = na;
             Health = he;
@@ -550,23 +698,23 @@ public class MainScavScript : MonoBehaviour
 
     }
     public class Weapon
-    {
+    {//add efective range
         public string Name;
         public string Type;
         public bool Ranged;
-        public int DamageHead;
-        public int DamageBody;
-        public int Critical;
-        public int CriticalChance;
-        public int CritRangeMin;
-        public int CritRangeMax;
-        public int AccuracyHead;
-        public int AccuracyBody;
-        public int Health;
-        public int Armor;
-        public int Speed;
+        public float DamageHead;
+        public float DamageBody;
+        public float Critical;
+        public float CriticalChance;
+        public float CritRangeMin;
+        public float CritRangeMax;
+        public float AccuracyHead;
+        public float AccuracyBody;
+        public float Health;
+        public float Armor;
+        public float Speed;
 
-        public Weapon(string na, string ty, bool ra, int dah, int dab, int cc, int crl, int crh, int cr, int ach, int acb, int he, int ar, int sp)
+        public Weapon(string na, string ty, bool ra, float dah, float dab, float cc, float crl, float crh, float cr, float ach, float acb, float he, float ar, float sp)
         {
             Name = na;
             Type = ty;
